@@ -15,10 +15,13 @@ function searchSub() {
 
     if (keyword === "") return;
 
+    let found = false;
+
     serviceList.forEach(service => {
 
-        // 先頭一致のみ
         if (!service.name.toLowerCase().startsWith(keyword)) return;
+
+        found = true;
 
         const row = document.createElement("div");
         row.className = "resultItem";
@@ -65,7 +68,6 @@ function searchSub() {
 
             planChanged();
 
-            // 検索を閉じる
             document.getElementById("search").value = "";
             result.innerHTML = "";
 
@@ -77,6 +79,27 @@ function searchSub() {
         result.appendChild(row);
 
     });
+
+    // 見つからなかった場合
+    if (!found) {
+
+        const row = document.createElement("div");
+        row.className = "resultItem";
+
+        row.innerHTML = `
+            <div class="left">
+                <b>検索結果がありません</b>
+                <div>自由入力で登録できます</div>
+            </div>
+
+            <button onclick="useCustomService()">
+                入力する
+            </button>
+        `;
+
+        result.appendChild(row);
+
+    }
 
 }
 
@@ -96,20 +119,25 @@ function addSub() {
     }
 
     const service = serviceList.find(s => s.name === name);
-    const plan = service ? service.plans[planSelect.value] : null;
+
+    let plan = null;
+
+    if (service && planSelect.value !== "custom") {
+        plan = service.plans[planSelect.value];
+    }
 
     let monthlyPrice = 0;
     let yearlyPrice = 0;
     let planType = "";
     let planName = "";
 
-    if (plan.type === "monthly") {
+    if (plan && plan.type === "monthly") {
 
         monthlyPrice = Number(document.getElementById("monthlyPrice").value);
         planType = "monthly";
         planName = plan.name;
 
-    } else if (plan.type === "yearly") {
+    } else if (plan && plan.type === "yearly") {
 
         yearlyPrice = Number(document.getElementById("yearlyPrice").value);
         planType = "yearly";
@@ -172,14 +200,13 @@ function addSub() {
 
     saveData();
 
-    // リセット
     document.getElementById("name").value = "";
     document.getElementById("plan").innerHTML =
         '<option value="">プランを選択</option>';
 
     document.getElementById("customPlanName").value = "";
     document.getElementById("customPlanArea").style.display = "none";
-    document.getElementById("customTypeArea").style.display = "none";
+    document.getElementById("customTypeArea").style.display = "block";
 
     document.getElementById("monthlyPrice").value = "";
     document.getElementById("yearlyPrice").value = "";
@@ -190,7 +217,6 @@ function addSub() {
     document.getElementById("yearlyArea").style.display = "none";
 
     render();
-
 }
 
 function editSub(index) {
@@ -246,13 +272,6 @@ function planChanged() {
     const serviceName = document.getElementById("name").value;
     const planSelect = document.getElementById("plan");
 
-    if (planSelect.value === "") return;
-
-    const service = serviceList.find(s => s.name === serviceName);
-    if (!service) return;
-
-    const plan = service.plans[planSelect.value];
-
     const monthlyArea = document.getElementById("monthlyArea");
     const yearlyArea = document.getElementById("yearlyArea");
     const customTypeArea = document.getElementById("customTypeArea");
@@ -261,13 +280,42 @@ function planChanged() {
     const monthlyPrice = document.getElementById("monthlyPrice");
     const yearlyPrice = document.getElementById("yearlyPrice");
 
-    // 一旦すべて非表示
-    customTypeArea.style.display = "none";
-    customPlanArea.style.display = "none";
+    // 一旦非表示
     monthlyArea.style.display = "none";
     yearlyArea.style.display = "none";
 
+    // プラン名は通常は非表示
+    customPlanArea.style.display = "none";
+
+    // ラジオボタンは常に表示
+    customTypeArea.style.display = "block";
+
+    const service = serviceList.find(s => s.name === serviceName);
+
+    // サービス一覧にない場合
+    if (!service) {
+
+        customPlanArea.style.display = "block";
+
+        monthlyPrice.readOnly = false;
+        yearlyPrice.readOnly = false;
+
+        changeCustomType();
+        return;
+    }
+
+    if (planSelect.value === "") {
+        changeCustomType();
+        return;
+    }
+
+    const plan = service.plans[planSelect.value];
+
     if (plan.type === "monthly") {
+
+        document.querySelector(
+            'input[name="customType"][value="monthly"]'
+        ).checked = true;
 
         monthlyArea.style.display = "block";
 
@@ -276,9 +324,13 @@ function planChanged() {
 
         monthlyPrice.readOnly = true;
         yearlyPrice.readOnly = true;
-
     }
+
     else if (plan.type === "yearly") {
+
+        document.querySelector(
+            'input[name="customType"][value="yearly"]'
+        ).checked = true;
 
         yearlyArea.style.display = "block";
 
@@ -287,21 +339,20 @@ function planChanged() {
 
         monthlyPrice.readOnly = true;
         yearlyPrice.readOnly = true;
-
     }
+
     else {
 
-        // 自分で入力
-        customTypeArea.style.display = "block";
+        // 「自分で入力」の時だけプラン名を表示
         customPlanArea.style.display = "block";
 
         monthlyPrice.readOnly = false;
         yearlyPrice.readOnly = false;
 
-        document.getElementById("customPlanName").value = "";
+        monthlyPrice.value = "";
+        yearlyPrice.value = "";
 
         changeCustomType();
-
     }
 
 }
@@ -318,25 +369,25 @@ function changeCustomType() {
     const monthlyPrice = document.getElementById("monthlyPrice");
     const yearlyPrice = document.getElementById("yearlyPrice");
 
+    // 値をリセット
+    monthlyPrice.value = "";
+    yearlyPrice.value = "";
+    document.getElementById("day").value = "";
+    document.getElementById("renewDate").value = "";
+
+    // 入力可能にする
+    monthlyPrice.readOnly = false;
+    yearlyPrice.readOnly = false;
+
     if (type === "monthly") {
 
         monthlyArea.style.display = "block";
         yearlyArea.style.display = "none";
 
-        monthlyPrice.value = "";
-        yearlyPrice.value = "";
-
-        monthlyPrice.removeAttribute("readonly");
-
     } else {
 
         monthlyArea.style.display = "none";
         yearlyArea.style.display = "block";
-
-        monthlyPrice.value = "";
-        yearlyPrice.value = "";
-
-        yearlyPrice.removeAttribute("readonly");
 
     }
 
@@ -414,6 +465,27 @@ function render() {
   document.getElementById("yearly").textContent =
     yearlyTotal.toLocaleString();
 
+}
+
+function useCustomService() {
+
+    const keyword = document.getElementById("search").value.trim();
+
+    document.getElementById("name").value = keyword;
+
+    const plan = document.getElementById("plan");
+
+    plan.innerHTML = `
+        <option value="custom" selected>自分で入力</option>
+    `;
+
+    document.getElementById("search").value = "";
+    document.getElementById("result").innerHTML = "";
+
+    document.getElementById("customTypeArea").style.display = "block";
+    document.getElementById("customPlanArea").style.display = "block";
+
+    changeCustomType();
 }
 
 render();
