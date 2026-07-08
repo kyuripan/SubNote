@@ -13,7 +13,7 @@
 
 <div class="container">
 
-    <h1>📱 SubNote </h1>
+    <h1>📱 SubNote</h1>
 
     <!-- 合計 -->
     <div class="summary">
@@ -53,6 +53,16 @@
 
         <h2>登録</h2>
 
+        <!-- プラン名 -->
+        <div id="customPlanArea">
+
+            <input
+                type="text"
+                id="customPlanName"
+                placeholder="プラン名を入力">
+
+        </div>
+
         <!-- サービス名 -->
         <input
             type="text"
@@ -70,12 +80,11 @@
 
         </select>
 
-        <!-- 自分で入力用 -->
-        <div
-            id="customTypeArea"
-            style="display:none;">
+        <!-- 月額・年額 -->
+        <div id="customTypeArea">
 
             <label>
+
                 <input
                     type="radio"
                     name="customType"
@@ -84,6 +93,7 @@
                     onchange="changeCustomType()">
 
                 月額
+
             </label>
 
             <label>
@@ -95,19 +105,8 @@
                     onchange="changeCustomType()">
 
                 年額
+
             </label>
-
-        </div>
-
-        <!-- プラン名 -->
-        <div
-            id="customPlanArea"
-            style="display:none;">
-
-            <input
-                type="text"
-                id="customPlanName"
-                placeholder="プラン名を入力">
 
         </div>
 
@@ -129,9 +128,8 @@
         </div>
 
         <!-- 年額 -->
-        <div
-            id="yearlyArea"
-            style="display:none;">
+        <div id="yearlyArea"
+             style="display:none;">
 
             <input
                 type="number"
@@ -145,7 +143,7 @@
         </div>
 
         <p class="note">
-            ※ 自分で入力を選ぶと、プラン名・料金を自由に設定できます。
+            ※ プランを「自分で入力」にすると自由に登録できます。
         </p>
 
         <button
@@ -164,6 +162,7 @@
     <ul id="list"></ul>
 
 </div>
+
 <script src="services.js"></script>
 <script src="script.js"></script>
 
